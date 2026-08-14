@@ -39,8 +39,43 @@
         .desc {
             text-align: center;
             color: #a0a0a0;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             font-size: 14px;
+        }
+
+        .id-section {
+            background: #0f3460;
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            border-left: 4px solid #c9a227;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .id-section label {
+            font-weight: bold;
+            color: #f0f0f0;
+        }
+
+        .id-section input {
+            padding: 8px 12px;
+            border: 1px solid #c9a227;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            border-radius: 4px;
+            width: 220px;
+        }
+
+        .id-section .tip {
+            font-size: 12px;
+            color: #a0a0a0;
+            width: 100%;
+            text-align: center;
+            margin-top: 5px;
         }
 
         .question {
@@ -83,7 +118,7 @@
 
         .submit-btn {
             display: block;
-            width: 200px;
+            width: 220px;
             height: 50px;
             margin: 30px auto 0;
             background: #c9a227;
@@ -96,9 +131,14 @@
             transition: all 0.3s;
         }
 
-        .submit-btn:hover {
+        .submit-btn:hover:not(:disabled) {
             background: #e0b836;
             transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .result {
@@ -120,6 +160,17 @@
             font-weight: bold;
             color: #c9a227;
             margin: 10px 0;
+        }
+
+        .my-rank-banner {
+            text-align: center;
+            padding: 12px;
+            background: rgba(201, 162, 39, 0.15);
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #c9a227;
         }
 
         .comment {
@@ -187,45 +238,11 @@
             text-align: center;
         }
 
-        .upload-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .upload-box input {
-            padding: 8px 12px;
-            border: 1px solid #c9a227;
-            background: #1a1a2e;
-            color: #e0e0e0;
-            border-radius: 4px;
-            width: 200px;
-        }
-
-        .upload-box button {
-            padding: 8px 20px;
-            background: #c9a227;
-            color: #1a1a2e;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .upload-box button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .upload-tip {
+        .upload-status {
             text-align: center;
-            font-size: 13px;
-            color: #a0a0a0;
+            font-size: 14px;
             margin-bottom: 15px;
-            min-height: 20px;
-            word-break: break-all;
+            min-height: 22px;
         }
 
         .board-wrap {
@@ -360,11 +377,18 @@
 <body>
     <div class="container">
         <h1>剧毒之渊H难度机制测试卷</h1>
-        <div class="desc">共25道单选题，每题4分，满分100分。作答完成后点击提交判分</div>
+        <div class="desc">共25道单选题，每题4分，满分100分。提交后自动上传成绩并入榜</div>
+
+        <!-- 答题前必填ID -->
+        <div class="id-section">
+            <label for="playerId">游戏ID：</label>
+            <input type="text" id="playerId" placeholder="请输入你的游戏ID" maxlength="20">
+            <div class="tip">* 必填，每个ID仅可提交一次成绩，提交后自动计入全服排行榜</div>
+        </div>
 
         <div id="quiz"></div>
 
-        <button class="submit-btn" onclick="submitQuiz()">提交答卷</button>
+        <button class="submit-btn" id="submitBtn" onclick="submitQuiz()">提交答卷并上传成绩</button>
 
         <div class="result" id="result">
             <div class="score-box">
@@ -372,6 +396,8 @@
                 <div class="score" id="score">0</div>
                 <div>满分 100 分</div>
             </div>
+
+            <div class="my-rank-banner" id="myRankBanner">正在上传成绩并计算排名...</div>
 
             <div class="comment" id="comment"></div>
 
@@ -383,11 +409,7 @@
             <!-- 排行榜区域 -->
             <div class="leaderboard-section">
                 <h3>🏆 全服排行榜</h3>
-                <div class="upload-box">
-                    <input type="text" id="playerId" placeholder="输入你的游戏ID" maxlength="20">
-                    <button id="uploadBtn" onclick="uploadScore()">上传分数</button>
-                </div>
-                <div class="upload-tip" id="uploadTip">每个ID仅可上传一次成绩，上传后不可修改</div>
+                <div class="upload-status" id="uploadStatus"></div>
 
                 <div class="board-wrap">
                     <div class="board-box">
@@ -727,6 +749,7 @@
 
         let finalScore = 0;
         let allRankData = [];
+        let currentPlayerId = '';
 
         // 渲染题目
         function renderQuiz() {
@@ -759,8 +782,25 @@
             quizContainer.innerHTML = html;
         }
 
-        // 提交判分
-        function submitQuiz() {
+        // 提交答卷主流程
+        async function submitQuiz() {
+            const idInput = document.getElementById('playerId');
+            const playerId = idInput.value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            const rankBanner = document.getElementById('myRankBanner');
+
+            // 校验ID
+            if (!playerId) {
+                alert('请先输入你的游戏ID再提交！');
+                idInput.focus();
+                return;
+            }
+
+            currentPlayerId = playerId;
+            submitBtn.disabled = true;
+            submitBtn.textContent = '正在判分并上传...';
+
+            // 1. 计算分数
             let score = 0;
             const wrongQuestions = [];
 
@@ -778,15 +818,10 @@
 
             finalScore = score;
 
-            // 显示结果
+            // 2. 显示基础结果
             document.getElementById('score').textContent = score;
-            document.getElementById('result').style.display = 'block';
-
-            // 生成锐评
-            const comment = generateComment(score);
-            document.getElementById('comment').innerHTML = comment;
-
-            // 生成错题
+            document.getElementById('comment').innerHTML = generateComment(score);
+            
             const wrongContent = document.getElementById('wrongContent');
             if (wrongQuestions.length === 0) {
                 wrongContent.innerHTML = '<div class="all-right">全部答对！你就是团本卷王，建议直接竞争团长职位。</div>';
@@ -808,11 +843,81 @@
                 wrongContent.innerHTML = wrongHtml;
             }
 
-            // 加载排行榜
-            loadLeaderboard();
-
-            // 滚动到结果
+            document.getElementById('result').style.display = 'block';
+            rankBanner.textContent = '正在上传成绩并计算排名...';
+            rankBanner.style.color = '#c9a227';
             document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+
+            // 3. 自动上传成绩
+            try {
+                await uploadScoreAuto(playerId, score);
+            } catch (e) {
+                rankBanner.textContent = '成绩上传失败：' + e.message;
+                rankBanner.style.color = '#ff6b6b';
+                document.getElementById('uploadStatus').textContent = '排行榜加载失败，请刷新页面重试';
+                document.getElementById('uploadStatus').style.color = '#ff6b6b';
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = '重新答题';
+            submitBtn.onclick = () => location.reload();
+        }
+
+        // 自动上传成绩（内部调用）
+        async function uploadScoreAuto(playerId, score) {
+            const rankBanner = document.getElementById('myRankBanner');
+            const uploadStatus = document.getElementById('uploadStatus');
+
+            try {
+                // 检查ID是否已存在
+                const checkRes = await fetch(`${SHEETDB_API}/search?id=${encodeURIComponent(playerId)}`);
+                if (!checkRes.ok) throw new Error(`服务器连接失败(${checkRes.status})`);
+                const checkData = await checkRes.json();
+                
+                if (checkData.length > 0) {
+                    // ID已存在，不重复上传，直接显示排名
+                    await loadLeaderboard();
+                    const myIndex = allRankData.findIndex(i => i.id === playerId);
+                    rankBanner.textContent = `该ID已存在成绩，当前排名：第 ${myIndex + 1} 名 / 共 ${allRankData.length} 人`;
+                    rankBanner.style.color = '#c9a227';
+                    uploadStatus.textContent = '每人仅可上传一次成绩，已显示历史排名';
+                    uploadStatus.style.color = '#a0a0a0';
+                    return;
+                }
+
+                // 上传新成绩
+                const now = new Date().toLocaleString('zh-CN');
+                const postRes = await fetch(SHEETDB_API, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        data: [{
+                            id: playerId,
+                            score: score,
+                            time: now
+                        }]
+                    })
+                });
+
+                if (!postRes.ok) {
+                    const errText = await postRes.text();
+                    throw new Error(`上传失败(${postRes.status})`);
+                }
+
+                // 重新加载排行榜并显示排名
+                await loadLeaderboard();
+                const myIndex = allRankData.findIndex(i => i.id === playerId);
+                rankBanner.textContent = `上传成功！当前排名：第 ${myIndex + 1} 名 / 共 ${allRankData.length} 人`;
+                rankBanner.style.color = '#51cf66';
+                uploadStatus.textContent = '';
+
+            } catch (e) {
+                throw e;
+            }
         }
 
         // 生成毒辣锐评
@@ -836,7 +941,6 @@
 
         // 加载排行榜数据
         async function loadLeaderboard() {
-            const tip = document.getElementById('uploadTip');
             try {
                 const res = await fetch(SHEETDB_API, { method: 'GET' });
                 if (!res.ok) throw new Error(`HTTP错误: ${res.status}`);
@@ -854,8 +958,7 @@
                 renderBottom10();
             } catch (e) {
                 console.error('加载排行榜失败', e);
-                tip.textContent = '排行榜加载失败：' + e.message;
-                tip.style.color = '#ff6b6b';
+                throw e;
             }
         }
 
@@ -886,86 +989,11 @@
             document.getElementById('bottom10List').innerHTML = html || '<div style="text-align:center;font-size:13px;color:#a0a0a0;">暂无数据</div>';
         }
 
-        // 上传分数
-        async function uploadScore() {
-            const idInput = document.getElementById('playerId');
-            const playerId = idInput.value.trim();
-            const btn = document.getElementById('uploadBtn');
-            const tip = document.getElementById('uploadTip');
-
-            if (!playerId) {
-                tip.textContent = '请先输入你的游戏ID';
-                tip.style.color = '#ff6b6b';
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = '上传中...';
-            tip.textContent = '';
-            tip.style.color = '#a0a0a0';
-
-            try {
-                // 检查ID是否已存在
-                const checkRes = await fetch(`${SHEETDB_API}/search?id=${encodeURIComponent(playerId)}`);
-                if (!checkRes.ok) throw new Error(`校验ID失败: ${checkRes.status}`);
-                const checkData = await checkRes.json();
-                
-                if (checkData.length > 0) {
-                    tip.textContent = '该ID已上传过成绩，每人仅可上传一次';
-                    tip.style.color = '#ff6b6b';
-                    btn.disabled = false;
-                    btn.textContent = '上传分数';
-                    return;
-                }
-
-                // 上传成绩
-                const now = new Date().toLocaleString('zh-CN');
-                const postRes = await fetch(SHEETDB_API, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        data: [{
-                            id: playerId,
-                            score: finalScore,
-                            time: now
-                        }]
-                    })
-                });
-
-                if (!postRes.ok) {
-                    const errText = await postRes.text();
-                    throw new Error(`服务器返回错误: ${postRes.status} ${errText}`);
-                }
-
-                const result = await postRes.json();
-                console.log('上传结果', result);
-
-                tip.textContent = '上传成功！你的成绩已加入排行榜';
-                tip.style.color = '#51cf66';
-                btn.textContent = '已上传';
-
-                // 重新加载排行榜
-                await loadLeaderboard();
-
-            } catch (e) {
-                console.error('上传失败', e);
-                tip.textContent = '上传失败：' + e.message;
-                tip.style.color = '#ff6b6b';
-                btn.disabled = false;
-                btn.textContent = '上传分数';
-            }
-        }
-
         // 显示完整榜单
         function showFullBoard() {
             const modal = document.getElementById('fullBoardModal');
             const listEl = document.getElementById('fullBoardList');
             const myRankEl = document.getElementById('myRankInfo');
-            const playerId = document.getElementById('playerId').value.trim();
 
             let html = '';
             allRankData.forEach((item, index) => {
@@ -980,8 +1008,8 @@
             listEl.innerHTML = html || '<div style="text-align:center;padding:20px;color:#a0a0a0;">暂无排行数据</div>';
 
             // 显示自己的排名
-            if (playerId) {
-                const myIndex = allRankData.findIndex(i => i.id === playerId);
+            if (currentPlayerId) {
+                const myIndex = allRankData.findIndex(i => i.id === currentPlayerId);
                 if (myIndex >= 0) {
                     myRankEl.textContent = `你的排名：第 ${myIndex + 1} 名 / 共 ${allRankData.length} 人`;
                     myRankEl.style.display = 'block';
