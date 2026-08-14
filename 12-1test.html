@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>剧毒之渊H难度机制测试卷</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            font-family: "微软雅黑", sans-serif;
+            padding: 30px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #16213e;
+            border: 2px solid #c9a227;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(201, 162, 39, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #c9a227;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .desc {
+            text-align: center;
+            color: #a0a0a0;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .question {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #0f3460;
+            border-radius: 6px;
+            border-left: 4px solid #c9a227;
+        }
+
+        .q-title {
+            font-weight: bold;
+            margin-bottom: 12px;
+            font-size: 16px;
+            color: #f0f0f0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-left: 10px;
+        }
+
+        .option {
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .option:hover {
+            background: rgba(201, 162, 39, 0.1);
+        }
+
+        .option input {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            display: block;
+            width: 200px;
+            height: 50px;
+            margin: 30px auto 0;
+            background: #c9a227;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #e0b836;
+            transform: translateY(-2px);
+        }
+
+        .result {
+            margin-top: 40px;
+            padding: 25px;
+            background: #0f3460;
+            border-radius: 8px;
+            border: 2px solid #c9a227;
+            display: none;
+        }
+
+        .score-box {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #c9a227;
+            margin: 10px 0;
+        }
+
+        .comment {
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            margin-bottom: 25px;
+            font-size: 15px;
+            line-height: 1.8;
+            color: #ff6b6b;
+        }
+
+        .wrong-list h3 {
+            color: #ff6b6b;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ff6b6b;
+            padding-bottom: 5px;
+        }
+
+        .wrong-item {
+            margin-bottom: 18px;
+            padding: 12px;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 5px;
+            border-left: 3px solid #ff6b6b;
+        }
+
+        .wrong-q {
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .wrong-answer {
+            color: #ff6b6b;
+            margin-bottom: 4px;
+        }
+
+        .right-answer {
+            color: #51cf66;
+            margin-bottom: 4px;
+        }
+
+        .analysis {
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+
+        .all-right {
+            text-align: center;
+            color: #51cf66;
+            font-size: 18px;
+            padding: 20px;
+        }
+
+        /* 排行榜相关样式 */
+        .leaderboard-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #c9a227;
+        }
+
+        .leaderboard-section h3 {
+            color: #c9a227;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .upload-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .upload-box input {
+            padding: 8px 12px;
+            border: 1px solid #c9a227;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        .upload-box button {
+            padding: 8px 20px;
+            background: #c9a227;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .upload-box button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .upload-tip {
+            text-align: center;
+            font-size: 13px;
+            color: #a0a0a0;
+            margin-bottom: 15px;
+            min-height: 20px;
+            word-break: break-all;
+        }
+
+        .board-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .board-box {
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .board-box h4 {
+            color: #c9a227;
+            margin-bottom: 10px;
+            font-size: 15px;
+            text-align: center;
+        }
+
+        .board-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 8px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .board-item:last-child {
+            border-bottom: none;
+        }
+
+        .rank-num {
+            width: 30px;
+            color: #c9a227;
+        }
+
+        .rank-id {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .rank-score {
+            width: 50px;
+            text-align: right;
+            color: #51cf66;
+        }
+
+        .full-board-btn {
+            display: block;
+            width: 160px;
+            margin: 0 auto;
+            padding: 8px;
+            background: transparent;
+            border: 1px solid #c9a227;
+            color: #c9a227;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .full-board-btn:hover {
+            background: rgba(201, 162, 39, 0.1);
+        }
+
+        /* 完整榜单弹窗 */
+        .modal-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .modal-content {
+            background: #16213e;
+            border: 2px solid #c9a227;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #c9a227;
+            padding-bottom: 10px;
+        }
+
+        .modal-header h3 {
+            color: #c9a227;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #e0e0e0;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .my-rank {
+            text-align: center;
+            padding: 10px;
+            background: rgba(201, 162, 39, 0.1);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            color: #c9a227;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .board-wrap {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>剧毒之渊H难度机制测试卷</h1>
+        <div class="desc">共25道单选题，每题4分，满分100分。作答完成后点击提交判分</div>
+
+        <div id="quiz"></div>
+
+        <button class="submit-btn" onclick="submitQuiz()">提交答卷</button>
+
+        <div class="result" id="result">
+            <div class="score-box">
+                <div>你的最终得分</div>
+                <div class="score" id="score">0</div>
+                <div>满分 100 分</div>
+            </div>
+
+            <div class="comment" id="comment"></div>
+
+            <div class="wrong-list" id="wrongList">
+                <h3>错题回顾与解析</h3>
+                <div id="wrongContent"></div>
+            </div>
+
+            <!-- 排行榜区域 -->
+            <div class="leaderboard-section">
+                <h3>🏆 全服排行榜</h3>
+                <div class="upload-box">
+                    <input type="text" id="playerId" placeholder="输入你的游戏ID" maxlength="20">
+                    <button id="uploadBtn" onclick="uploadScore()">上传分数</button>
+                </div>
+                <div class="upload-tip" id="uploadTip">每个ID仅可上传一次成绩，上传后不可修改</div>
+
+                <div class="board-wrap">
+                    <div class="board-box">
+                        <h4>⭐ 分数前10名</h4>
+                        <div id="top10List"></div>
+                    </div>
+                    <div class="board-box">
+                        <h4>💀 倒数10名</h4>
+                        <div id="bottom10List"></div>
+                    </div>
+                </div>
+
+                <button class="full-board-btn" onclick="showFullBoard()">查看完整榜单</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 完整榜单弹窗 -->
+    <div class="modal-mask" id="fullBoardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>完整排行榜</h3>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="my-rank" id="myRankInfo"></div>
+            <div id="fullBoardList"></div>
+        </div>
+    </div>
+
+    <script>
+        // ===================== 配置区 =====================
+        const SHEETDB_API = 'https://sheetdb.io/api/v1/8cb94n6v04bsv';
+        // =================================================
+
+        const questions = [
+            {
+                id: 1,
+                question: "H1噬魂者内克扎莉P1中，被绿色点名后正确的处理方式是？",
+                options: [
+                    "立刻跑到中场让全团共同分担伤害",
+                    "贴边后由治疗进行驱散",
+                    "直接开启个人减伤硬吃debuff",
+                    "点名结束后立即撞向队友传递debuff"
+                ],
+                answer: 1,
+                analysis: "绿色点名需贴边后由治疗驱散，不可硬吃或在人群中传递，否则会扩散debuff。"
+            },
+            {
+                id: 2,
+                question: "H1噬魂者内克扎莉P2阶段，关于烧尸体的说法正确的是？",
+                options: [
+                    "只有大火圈能烧尸体，小火圈完全无效",
+                    "必须坦克开减伤站在尸体上才能烧",
+                    "不分担组的小火圈也可以烧尸体",
+                    "需要把尸体全部拉到中场统一焚烧"
+                ],
+                answer: 2,
+                analysis: "P2阶段不分担组的小火圈可以烧尸体，分担组的大火圈也疑似具备烧尸体效果。"
+            },
+            {
+                id: 3,
+                question: "H2陵寝哨兵一阶段，面对全场小绿圈正确做法是？",
+                options: [
+                    "主动踩，仅造成纯伤害无debuff",
+                    "必须躲开，踩到会叠加致死毒debuff",
+                    "需要治疗站圈里驱散全团",
+                    "只有坦克可以踩圈消除层数"
+                ],
+                answer: 0,
+                analysis: "小绿圈仅造成纯伤害，无任何debuff效果，主动踩即可，无需躲避或驱散。"
+            },
+            {
+                id: 4,
+                question: "H2陵寝哨兵转阶段球机制，两个玩家相撞的目的是？",
+                options: [
+                    "消除两人头顶所有的绿色球",
+                    "让两人头顶红色球数量相加等于4",
+                    "将所有球全部转移给其中一个人",
+                    "触发护盾抵挡后续boss伤害"
+                ],
+                answer: 1,
+                analysis: "相撞的核心目标是使两人头顶的红色球数量相加等于4，而非消除绿球或转移球。"
+            },
+            {
+                id: 5,
+                question: "H3万毒邪祟者瓦什尼克暗火阶段，红色箭头点名正确处理是？",
+                options: [
+                    "立刻跑到boss脚下集合分担",
+                    "和另一个点名玩家对冲抵消",
+                    "点名玩家跑离大团越远越好",
+                    "贴紧场地边缘放圈后立刻回团"
+                ],
+                answer: 2,
+                analysis: "暗火阶段红色箭头点名需远离大团，距离越远伤害越低，不可集合或对冲。"
+            },
+            {
+                id: 6,
+                question: "H3万毒邪祟者瓦什尼克，火祭坛红色软泥死亡后产生全团DOT，正确应对是？",
+                options: [
+                    "两只软泥拉一起同时击杀快速处理",
+                    "分别击杀两只软泥并开启团队减伤",
+                    "由坦克单吃软泥死亡的全部伤害",
+                    "软泥必须拉到血祭坛内部击杀"
+                ],
+                answer: 1,
+                analysis: "软泥死亡后的全团DOT可叠加，同时击杀会导致伤害爆炸，需分别击杀并配合团减覆盖。"
+            },
+            {
+                id: 7,
+                question: "H4迷失的探险者议会boss，核心修血原则是？",
+                options: [
+                    "优先击杀商人，防止其无限刷新蘑菇",
+                    "三个boss分开拉逐个击杀效率最高",
+                    "优先击杀贤者，三个拉一起有99%减伤",
+                    "优先击杀大副，避免锥形眩晕控场"
+                ],
+                answer: 2,
+                analysis: "三个boss拉在一起会获得99%减伤，核心打法是优先击杀贤者，逐步拆解议会。"
+            },
+            {
+                id: 8,
+                question: "H4迷失的探险者P2（喂大副）阶段，分担圈机制要求是？",
+                options: [
+                    "三个分担圈不能重合，全团分三组分担",
+                    "所有圈集中在中场全团一起分担",
+                    "圈必须放在悬崖边才能消除层数",
+                    "由坦克单吃所有分担圈伤害"
+                ],
+                answer: 0,
+                analysis: "三个分担圈不可重合，全团需分成三组分别承担，第三次分担伤害最高需开减伤。"
+            },
+            {
+                id: 9,
+                question: "H4迷失的探险者P3（喂贤者）阶段，消除debuff的方式是？",
+                options: [
+                    "跑到光柱里自动消除debuff",
+                    "由治疗逐个驱散玩家debuff",
+                    "互相踩对方的地板圈消除debuff",
+                    "撞向队友可以直接消除debuff"
+                ],
+                answer: 2,
+                analysis: "需互相踩对方放置的地板圈来消除debuff，消除瞬间会对全团造成AOE伤害。"
+            },
+            {
+                id: 10,
+                question: "H5斯索拉克一阶段，蓝圈点名对冲机制的要求是？",
+                options: [
+                    "两名玩家快速相撞抵消蓝圈",
+                    "两个方向相反的玩家互相用线指向对方",
+                    "蓝圈放在场地边缘自动消失",
+                    "全团集合一起共同分担蓝圈"
+                ],
+                answer: 1,
+                analysis: "蓝圈点名需要两名方向相反的玩家互相用连线指向对方，否则会被超远击飞。"
+            },
+            {
+                id: 11,
+                question: "H5斯索拉克转阶段吹风机制，吹风时需要做的是？",
+                options: [
+                    "躲在风珠背面规避吹风伤害",
+                    "迎着吹风强行跑到对面场地",
+                    "将绿色宝珠撞到boss身上造成伤害",
+                    "碰触对面的绿色宝珠将其击退"
+                ],
+                answer: 3,
+                analysis: "吹风阶段需按风珠顺序碰触对面的绿色宝珠将其击退，三次后消除剩余单独宝珠。"
+            },
+            {
+                id: 12,
+                question: "H6双子毒牙的永恒毒液机制，叠到多少层会直接死亡？",
+                options: [
+                    "5层",
+                    "10层",
+                    "15层",
+                    "20层"
+                ],
+                answer: 1,
+                analysis: "永恒毒液叠到10层会立即死亡，红色大圈全员分担可消除3层毒液。"
+            },
+            {
+                id: 13,
+                question: "H6双子毒牙P1，红色大圈的正确处理是？",
+                options: [
+                    "全员分担，可消除3层毒液",
+                    "贴边放置，避免波及大团",
+                    "由坦克单独吃圈消层",
+                    "和绿圈重合放置抵消伤害"
+                ],
+                answer: 0,
+                analysis: "红色大圈需要全员集合分担，同时可消除3层永恒毒液debuff。"
+            },
+            {
+                id: 14,
+                question: "H6双子毒牙P2的270°射线，判断方向的依据是？",
+                options: [
+                    "场地外围箭头指示的方向",
+                    "当前坦克的面朝方向",
+                    "boss身上绿球的旋转方向",
+                    "随机方向，全团分散躲避"
+                ],
+                answer: 2,
+                analysis: "270°射线方向由boss身上绿球的旋转方向决定，需跟随射线逐步移动躲避。"
+            },
+            {
+                id: 15,
+                question: "H7盘卷祭坛P1阶段，玩家捡球后多久会自动放下？",
+                options: [
+                    "3秒",
+                    "7秒",
+                    "10秒",
+                    "15秒"
+                ],
+                answer: 1,
+                analysis: "玩家捡球后7秒会自动放下，需要主动运球到中场由boss技能消除。"
+            },
+            {
+                id: 16,
+                question: "H7盘卷祭坛P2，被灵魂点名的玩家正确操作是？",
+                options: [
+                    "立刻跑离大团，把灵魂带得越远越好",
+                    "面向灵魂慢慢后退拉扯距离",
+                    "和队友相撞可以直接消除灵魂",
+                    "中场集合背对灵魂聚拢，再面对灵魂定住它"
+                ],
+                answer: 3,
+                analysis: "灵魂机制类似SCP-173，需先背对聚拢灵魂，再面对灵魂将其定住，不可一直盯着也不可完全背对乱跑。"
+            },
+            {
+                id: 17,
+                question: "H7盘卷祭坛P3阶段，以下技能顺序正确的是？",
+                options: [
+                    "心控转火→分担→跑位运球→紫圈出人群+引魂→头前消魂",
+                    "分担→心控转火→紫圈出人群→运球→消魂",
+                    "运球→分担→心控转火→引魂→消魂",
+                    "紫圈出人群→分担→运球→心控转火→消魂"
+                ],
+                answer: 0,
+                analysis: "P3标准技能轴为：心控迅速转火→分担→50码跑位+运球→紫色大圈出人群+中场引魂→头前消魂/球。"
+            },
+            {
+                id: 18,
+                question: "H3万毒邪祟者瓦什尼克血暗阶段，深红色圈正确处理是？",
+                options: [
+                    "点名玩家跑出大团单独放圈",
+                    "去人群集合共同分担",
+                    "贴场地最边缘放置",
+                    "和另一个红圈对冲抵消"
+                ],
+                answer: 1,
+                analysis: "血暗阶段深红色圈为分担技能，需进人群共同承担；注意与暗火阶段的红箭头远离机制区分。"
+            },
+            {
+                id: 19,
+                question: "H2陵寝哨兵绿色boss战中，射线的来源是？",
+                options: [
+                    "从绿色boss射向随机玩家",
+                    "只从场地四个角落射出",
+                    "从场地任意位置射向绿色boss",
+                    "只射向坦克所在位置"
+                ],
+                answer: 2,
+                analysis: "射线会从场地任意方向射向绿色boss，需在边场输出并注意躲避射线轨迹。"
+            },
+            {
+                id: 20,
+                question: "H1噬魂者内克扎莉P1，坦克被点名时正确处理是？",
+                options: [
+                    "拉着boss贴场地边缘移动",
+                    "往场地越远的地方走越好",
+                    "立刻嘲讽换坦消除debuff",
+                    "跑到大团里开启减伤硬吃"
+                ],
+                answer: 1,
+                analysis: "坦克点名需往场地远处走，距离大团越远越好，大团常规在边场站位。"
+            },
+            {
+                id: 21,
+                question: "H4迷失的探险者P1（喂商人），蘑菇机制正确做法是？",
+                options: [
+                    "蘑菇一出现就立刻踩掉获得增益",
+                    "蘑菇集中放在中场一起踩效果最佳",
+                    "蘑菇不要提前踩，火圈扩散时踩蘑菇上天躲避",
+                    "蘑菇需要由坦克踩掉触发团队减伤"
+                ],
+                answer: 2,
+                analysis: "蘑菇不可提前踩，需等火圈扩散时踩蘑菇上天躲避伤害，提前踩会导致后续无技能可用。"
+            },
+            {
+                id: 22,
+                question: "H5斯索拉克一阶段，绿色箭头点名正确处理是？",
+                options: [
+                    "带到风珠位置让风珠吹走球",
+                    "去风珠对面的场地放球",
+                    "放到boss脚下直接消掉",
+                    "和队友相撞传递球"
+                ],
+                answer: 1,
+                analysis: "绿色箭头点名需前往风珠对面的场地放置球，配合后续吹风机制。"
+            },
+            {
+                id: 23,
+                question: "H6双子毒牙P1，中场出现小怪时正确处理是？",
+                options: [
+                    "优先转火小怪，绿色射线不重合、不乱动",
+                    "拉到boss位置一起AOE处理",
+                    "小怪由坦克风筝，其他人全力打boss",
+                    "用红色大圈炸死小怪节省输出"
+                ],
+                answer: 0,
+                analysis: "中场小怪需优先转火，小怪发射的绿色射线不可重合，其他玩家注意躲避不要乱动。"
+            },
+            {
+                id: 24,
+                question: "H7盘卷祭坛P2，大紫圈（T头前）的正确处理方式是？",
+                options: [
+                    "全团集合在紫圈内共同分担伤害",
+                    "紫圈放在白色灵魂上可以直接消除灵魂",
+                    "紫圈带出人群，结束后踩三个白色灵魂",
+                    "踩紫圈可以获得高额减伤buff"
+                ],
+                answer: 2,
+                analysis: "大紫圈由坦克头前释放，需先带出人群避免波及大团，紫圈结束后会出现三个白色灵魂，需要撞掉处理。"
+            },
+            {
+                id: 25,
+                question: "H3万毒邪祟者瓦什尼克全程技能中，点名出人群结束后会触发什么？",
+                options: [
+                    "生成一个软泥怪",
+                    "叠加全团DOT伤害",
+                    "射出十字型蠕动波",
+                    "产生高额治疗吸收盾"
+                ],
+                answer: 2,
+                analysis: "点名出人群结束后会射出十字型蠕动波，全团需注意躲避波的轨迹。"
+            }
+        ];
+
+        let finalScore = 0;
+        let allRankData = [];
+
+        // 渲染题目
+        function renderQuiz() {
+            const quizContainer = document.getElementById('quiz');
+            let html = '';
+            
+            questions.forEach((q) => {
+                html += `
+                    <div class="question">
+                        <div class="q-title">${q.id}. ${q.question}</div>
+                        <div class="options">
+                `;
+                
+                q.options.forEach((opt, optIndex) => {
+                    const letter = String.fromCharCode(65 + optIndex);
+                    html += `
+                        <label class="option">
+                            <input type="radio" name="q${q.id}" value="${optIndex}">
+                            ${letter}. ${opt}
+                        </label>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            quizContainer.innerHTML = html;
+        }
+
+        // 提交判分
+        function submitQuiz() {
+            let score = 0;
+            const wrongQuestions = [];
+
+            questions.forEach(q => {
+                const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
+                if (selected && parseInt(selected.value) === q.answer) {
+                    score += 4;
+                } else {
+                    wrongQuestions.push({
+                        ...q,
+                        userAnswer: selected ? selected.value : '未作答'
+                    });
+                }
+            });
+
+            finalScore = score;
+
+            // 显示结果
+            document.getElementById('score').textContent = score;
+            document.getElementById('result').style.display = 'block';
+
+            // 生成锐评
+            const comment = generateComment(score);
+            document.getElementById('comment').innerHTML = comment;
+
+            // 生成错题
+            const wrongContent = document.getElementById('wrongContent');
+            if (wrongQuestions.length === 0) {
+                wrongContent.innerHTML = '<div class="all-right">全部答对！你就是团本卷王，建议直接竞争团长职位。</div>';
+            } else {
+                let wrongHtml = '';
+                wrongQuestions.forEach(q => {
+                    const userLetter = q.userAnswer === '未作答' ? '未作答' : String.fromCharCode(65 + parseInt(q.userAnswer));
+                    const rightLetter = String.fromCharCode(65 + q.answer);
+                    
+                    wrongHtml += `
+                        <div class="wrong-item">
+                            <div class="wrong-q">第${q.id}题：${q.question}</div>
+                            <div class="wrong-answer">你的答案：${userLetter}. ${q.userAnswer === '未作答' ? '空题没选' : q.options[q.userAnswer]}</div>
+                            <div class="right-answer">正确答案：${rightLetter}. ${q.options[q.answer]}</div>
+                            <div class="analysis">解析：${q.analysis}</div>
+                        </div>
+                    `;
+                });
+                wrongContent.innerHTML = wrongHtml;
+            }
+
+            // 加载排行榜
+            loadLeaderboard();
+
+            // 滚动到结果
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 生成毒辣锐评
+        function generateComment(score) {
+            if (score === 100) {
+                return "【满分大佬】攻略都背得滚瓜烂熟了，属于是团长看见你就递麦的水平。建议别打H了，直接去M本当指挥，野团里你就是稀缺国宝级选手，混子们的爹。";
+            } else if (score >= 84) {
+                return "【高玩水准】机制基本门清，偶尔失误也属于手滑范畴。野团里算靠谱选手，团长见了都放心。就是离卷王还差一点，建议再把攻略抄三遍，争取下次满分装杯。";
+            } else if (score >= 64) {
+                return "【勉强合格】基础机制都懂，属于能进野队不被踢的水平。但也就那样，复杂机制容易犯迷糊，犯错了还得队友给你擦屁股。建议开打前再看两遍攻略，别当团队短板。";
+            } else if (score >= 44) {
+                return "【半混子选手】懂点皮毛但一知半解，简单机制能混，复杂机制直接暴毙。团长看见你都得皱眉头，属于那种“凑活打吧，实在没人了”的边缘人物。建议多打木桩少划水，机制记不住就别祸害队友。";
+            } else if (score >= 24) {
+                return "【纯混子预警】你这水平进本就是躺尸老板吧？机制全靠猜，走位全靠蒙，死了就说网络卡。团长组到你算是倒了八辈子霉，建议删游戏别打团本了，去打随机本都坑人。";
+            } else {
+                return "【卧龙凤雏】25道题对不了几道，建议直接删号。你进团本唯一的作用就是给boss送能量，给治疗增加KPI。别打H难度了，普通地下城都不一定能打明白，建议去玩消消乐。";
+            }
+        }
+
+        // ===================== 排行榜相关函数 =====================
+
+        // 加载排行榜数据
+        async function loadLeaderboard() {
+            const tip = document.getElementById('uploadTip');
+            try {
+                const res = await fetch(SHEETDB_API, { method: 'GET' });
+                if (!res.ok) throw new Error(`HTTP错误: ${res.status}`);
+                const data = await res.json();
+                
+                // 按分数降序、时间升序排序
+                allRankData = data.sort((a, b) => {
+                    if (Number(b.score) !== Number(a.score)) {
+                        return Number(b.score) - Number(a.score);
+                    }
+                    return new Date(a.time) - new Date(b.time);
+                });
+
+                renderTop10();
+                renderBottom10();
+            } catch (e) {
+                console.error('加载排行榜失败', e);
+                tip.textContent = '排行榜加载失败：' + e.message;
+                tip.style.color = '#ff6b6b';
+            }
+        }
+
+        // 渲染前10
+        function renderTop10() {
+            const list = allRankData.slice(0, 10);
+            const html = list.map((item, index) => `
+                <div class="board-item">
+                    <span class="rank-num">${index + 1}</span>
+                    <span class="rank-id">${escapeHtml(item.id)}</span>
+                    <span class="rank-score">${item.score}分</span>
+                </div>
+            `).join('');
+            document.getElementById('top10List').innerHTML = html || '<div style="text-align:center;font-size:13px;color:#a0a0a0;">暂无数据</div>';
+        }
+
+        // 渲染倒数10
+        function renderBottom10() {
+            const list = allRankData.slice(-10).reverse();
+            const startNum = allRankData.length - list.length + 1;
+            const html = list.map((item, index) => `
+                <div class="board-item">
+                    <span class="rank-num">${startNum + index}</span>
+                    <span class="rank-id">${escapeHtml(item.id)}</span>
+                    <span class="rank-score">${item.score}分</span>
+                </div>
+            `).join('');
+            document.getElementById('bottom10List').innerHTML = html || '<div style="text-align:center;font-size:13px;color:#a0a0a0;">暂无数据</div>';
+        }
+
+        // 上传分数
+        async function uploadScore() {
+            const idInput = document.getElementById('playerId');
+            const playerId = idInput.value.trim();
+            const btn = document.getElementById('uploadBtn');
+            const tip = document.getElementById('uploadTip');
+
+            if (!playerId) {
+                tip.textContent = '请先输入你的游戏ID';
+                tip.style.color = '#ff6b6b';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '上传中...';
+            tip.textContent = '';
+            tip.style.color = '#a0a0a0';
+
+            try {
+                // 检查ID是否已存在
+                const checkRes = await fetch(`${SHEETDB_API}/search?id=${encodeURIComponent(playerId)}`);
+                if (!checkRes.ok) throw new Error(`校验ID失败: ${checkRes.status}`);
+                const checkData = await checkRes.json();
+                
+                if (checkData.length > 0) {
+                    tip.textContent = '该ID已上传过成绩，每人仅可上传一次';
+                    tip.style.color = '#ff6b6b';
+                    btn.disabled = false;
+                    btn.textContent = '上传分数';
+                    return;
+                }
+
+                // 上传成绩
+                const now = new Date().toLocaleString('zh-CN');
+                const postRes = await fetch(SHEETDB_API, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        data: [{
+                            id: playerId,
+                            score: finalScore,
+                            time: now
+                        }]
+                    })
+                });
+
+                if (!postRes.ok) {
+                    const errText = await postRes.text();
+                    throw new Error(`服务器返回错误: ${postRes.status} ${errText}`);
+                }
+
+                const result = await postRes.json();
+                console.log('上传结果', result);
+
+                tip.textContent = '上传成功！你的成绩已加入排行榜';
+                tip.style.color = '#51cf66';
+                btn.textContent = '已上传';
+
+                // 重新加载排行榜
+                await loadLeaderboard();
+
+            } catch (e) {
+                console.error('上传失败', e);
+                tip.textContent = '上传失败：' + e.message;
+                tip.style.color = '#ff6b6b';
+                btn.disabled = false;
+                btn.textContent = '上传分数';
+            }
+        }
+
+        // 显示完整榜单
+        function showFullBoard() {
+            const modal = document.getElementById('fullBoardModal');
+            const listEl = document.getElementById('fullBoardList');
+            const myRankEl = document.getElementById('myRankInfo');
+            const playerId = document.getElementById('playerId').value.trim();
+
+            let html = '';
+            allRankData.forEach((item, index) => {
+                html += `
+                    <div class="board-item">
+                        <span class="rank-num">${index + 1}</span>
+                        <span class="rank-id">${escapeHtml(item.id)}</span>
+                        <span class="rank-score">${item.score}分</span>
+                    </div>
+                `;
+            });
+            listEl.innerHTML = html || '<div style="text-align:center;padding:20px;color:#a0a0a0;">暂无排行数据</div>';
+
+            // 显示自己的排名
+            if (playerId) {
+                const myIndex = allRankData.findIndex(i => i.id === playerId);
+                if (myIndex >= 0) {
+                    myRankEl.textContent = `你的排名：第 ${myIndex + 1} 名 / 共 ${allRankData.length} 人`;
+                    myRankEl.style.display = 'block';
+                } else {
+                    myRankEl.style.display = 'none';
+                }
+            } else {
+                myRankEl.style.display = 'none';
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        // 关闭弹窗
+        function closeModal() {
+            document.getElementById('fullBoardModal').style.display = 'none';
+        }
+
+        // XSS防护
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // 点击遮罩关闭弹窗
+        document.getElementById('fullBoardModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // 页面加载渲染题目
+        window.onload = renderQuiz;
+    </script>
+</body>
+</html>
