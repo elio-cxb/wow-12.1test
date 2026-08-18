@@ -452,7 +452,7 @@
 
     <script>
         // ===================== 配置区 =====================
-        const SHEETDB_API = 'https://sheetdb.io/api/v1/8cb94n6v04bsv';
+        const SHEETDB_API = 'https://script.google.com/macros/s/AKfycbxi8iqDoNfU6ahZOI2iYfOaBSZWh61YRADo044vmdfiQ0lhe7QnlCiS6j4npUh9BIXZHQ/exec';
         // =================================================
 
         const questions = [
@@ -875,61 +875,55 @@
         }
 
         // 自动上传成绩（内部调用）
-        async function uploadScoreAuto(playerId, score) {
-            const rankBanner = document.getElementById('myRankBanner');
-            const uploadStatus = document.getElementById('uploadStatus');
+async function uploadScoreAuto(playerId, score) {
+    const rankBanner = document.getElementById('myRankBanner');
+    const uploadStatus = document.getElementById('uploadStatus');
 
-            try {
-                // 检查ID是否已存在
-                const checkRes = await fetch(`${SHEETDB_API}/search?id=${encodeURIComponent(playerId)}`);
-                if (!checkRes.ok) throw new Error(`服务器连接失败(${checkRes.status})`);
-                const checkData = await checkRes.json();
-                
-                if (checkData.length > 0) {
-                    // ID已存在，不重复上传，直接显示排名
-                    await loadLeaderboard();
-                    const myIndex = allRankData.findIndex(i => i.id === playerId);
-                    rankBanner.textContent = `该ID已存在成绩，当前排名：第 ${myIndex + 1} 名 / 共 ${allRankData.length} 人`;
-                    rankBanner.style.color = '#c9a227';
-                    uploadStatus.textContent = '每人仅可上传一次成绩，已显示历史排名';
-                    uploadStatus.style.color = '#a0a0a0';
-                    return;
-                }
+    try {
+        // 二次校验违禁词
+      
+        const now = new Date().toLocaleString('zh-CN');
+        const postRes = await fetch(SHEETDB_API, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'text/plain'
+            },
+            body: JSON.stringify({
+                id: playerId,
+                score: score,
+                time: now
+            })
+        });
 
-                // 上传新成绩
-                const now = new Date().toLocaleString('zh-CN');
-                const postRes = await fetch(SHEETDB_API, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        data: [{
-                            id: playerId,
-                            score: score,
-                            time: now
-                        }]
-                    })
-                });
-
-                if (!postRes.ok) {
-                    const errText = await postRes.text();
-                    throw new Error(`上传失败(${postRes.status})`);
-                }
-
-                // 重新加载排行榜并显示排名
+        const result = await postRes.json();
+        if (!result.success) {
+            if (result.error === '该ID已存在') {
+                // ID已存在，直接显示排名
                 await loadLeaderboard();
                 const myIndex = allRankData.findIndex(i => i.id === playerId);
-                rankBanner.textContent = `上传成功！当前排名：第 ${myIndex + 1} 名 / 共 ${allRankData.length} 人`;
-                rankBanner.style.color = '#51cf66';
-                uploadStatus.textContent = '';
-
-            } catch (e) {
-                throw e;
+                rankBanner.textContent = `该ID已存在成绩，当前排名：第 ${myIndex + 1} 名 / 共 ${allRankData.length} 人`;
+                rankBanner.style.color = '#c9a227';
+                uploadStatus.textContent = '每人仅可上传一次成绩，已显示历史排名';
+                uploadStatus.style.color = '#a0a0a0';
+                return;
             }
+            throw new Error(result.error);
         }
+
+        // 上传成功，重新加载排行榜
+        await loadLeaderboard();
+        const myIndex = allRankData.findIndex(i => i.id === playerId);
+        rankBanner.textContent = `上传成功！当前排名：第 ${myIndex + 1} 名 / 共 ${allRankData.length} 人`;
+        rankBanner.style.color = '#51cf66';
+        uploadStatus.textContent = '';
+
+    } catch (e) {
+        throw e;
+    }
+}
+
 
         // 生成毒辣锐评
         function generateComment(score) {
