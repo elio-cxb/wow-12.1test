@@ -513,7 +513,7 @@
     </div>
     <script>
         // ===================== 配置区 =====================
-        
+        // 后端代理地址，所有读写请求走后端，由后端做合法性校验
         const SHEETDB_API = 'https://1470660505-dossu7oz5o.ap-shanghai.tencentscf.com';
         // 试卷启用开关：true=开放提交+排行榜，false=暂未开放
         const QUIZ_ENABLED = {
@@ -528,16 +528,6 @@
             m8: false,
             m9: false
         };
-        
-        const SIGN_SALT = 'wow_quiz_2026_secret_abc123';
-
-        async function sha256(str) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(str);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
         // =================================================
         // 多套题目集合，key对应type字段值
         const quizSets = {
@@ -1133,18 +1123,13 @@
             submitBtn.onclick = () => location.reload();
         }
 
-        // 自动上传成绩：前端只传答案+签名，分数由后端计算返回
+        // 自动上传成绩：前端只传 answers，分数由后端计算并返回
         async function uploadScoreAuto(playerId, answers) {
             const rankBanner = document.getElementById('myRankBanner');
             const uploadStatus = document.getElementById('uploadStatus');
 
             try {
                 const now = new Date().toLocaleString('zh-CN');
-                const timestamp = Math.floor(Date.now() / 1000);
-                // 拼接签名原文，规则和后端完全一致
-                const answersStr = answers.join(',');
-                const signStr = `${playerId}|${currentSet}|${answersStr}|${timestamp}|${SIGN_SALT}`;
-                const sign = await sha256(signStr);
 
                 const postRes = await fetch(SHEETDB_API, {
                     method: 'POST',
@@ -1153,9 +1138,7 @@
                         id: playerId,
                         time: now,
                         type: currentSet,
-                        answers: answers,
-                        timestamp: timestamp,
-                        sign: sign
+                        answers: answers
                     })
                 });
 
@@ -1189,7 +1172,6 @@
                 throw e;
             }
         }
-
 
         // 生成毒辣锐评
         function generateComment(score) {
@@ -1336,4 +1318,3 @@
     </script>
 </body>
 </html>
-
