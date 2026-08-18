@@ -403,7 +403,6 @@
         <h1>烈毒之渊机制测试卷</h1>
         <div class="desc">选择对应难度试卷，提交后自动计入对应排行榜</div>
         <a href="https://www.kdocs.cn/l/cuFmfCcPJ8H7" target="_blank" class="guide-link">→ 完整攻略 ←</a>
-
         <!-- 试卷选择区域 -->
         <div class="quiz-select">
             <div class="label">选择试卷难度：</div>
@@ -450,14 +449,12 @@
                 </label>
             </div>
         </div>
-
         <!-- 答题前必填ID -->
         <div class="id-section">
             <label for="playerId">游戏ID：</label>
             <input type="text" id="playerId" placeholder="请输入你的游戏ID" maxlength="200">
             <div class="tip">* 必填，每个ID在对应卷子中仅可提交一次成绩</div>
         </div>
-
         <div id="quiz"></div>
         <button class="submit-btn" id="submitBtn" onclick="submitQuiz()">提交答卷并上传成绩</button>
         
@@ -465,7 +462,6 @@
         <div id="quizClosedTip" class="quiz-closed-tip" style="display: none;">
             本卷题目更新中，暂未开放提交与排行榜，敬请期待
         </div>
-
         <div class="result" id="result">
             <div class="score-box">
                 <div>你的最终得分</div>
@@ -495,7 +491,6 @@
                 <button class="full-board-btn" onclick="showFullBoard()">查看完整榜单</button>
             </div>
         </div>
-
         <!-- 免责声明 -->
         <div class="disclaimer">
             <h4>免责声明</h4>
@@ -505,7 +500,6 @@
             <p>4. 如页面内容存在侵权或不当信息，请联系我，我将第一时间核实并处理。</p>
         </div>
     </div>
-
     <!-- 完整榜单弹窗 -->
     <div class="modal-mask" id="fullBoardModal">
         <div class="modal-content">
@@ -517,12 +511,10 @@
             <div id="fullBoardList"></div>
         </div>
     </div>
-
     <script>
         // ===================== 配置区 =====================
-        // 仅用1个后端代理地址，通过type字段区分不同卷子
+        // 后端代理地址，所有读写请求走后端，由后端做合法性校验
         const SHEETDB_API = 'https://1470660505-dossu7oz5o.ap-shanghai.tencentscf.com';
-
         // 试卷启用开关：true=开放提交+排行榜，false=暂未开放
         const QUIZ_ENABLED = {
             h: true,
@@ -537,7 +529,6 @@
             m9: false
         };
         // =================================================
-
         // 多套题目集合，key对应type字段值
         const quizSets = {
             // H难度 原有25道题完整保留
@@ -564,7 +555,7 @@
                         "需要把尸体全部拉到中场统一焚烧"
                     ],
                     answer: 2,
-                    analysis: "P2阶段不分担组的小火圈需要烧尸体，减少后续小怪数量，分担组的大火圈也疑似具备烧尸体效果。"
+                    analysis: "P2阶段不分担组的小火圈也可以烧尸体，减少后续小怪数量，分担组的大火圈也具备烧尸体效果。"
                 },
                 {
                     id: 3,
@@ -828,7 +819,7 @@
                         "踩紫圈可以获得高额减伤buff"
                     ],
                     answer: 2,
-                    analysis: "大紫圈和坦克头前释放，需先出人群避免波及大团，紫圈结束后会出现三个白色灵魂，需要撞掉处理。"
+                    analysis: "大紫圈和坦克头前释放，需先带出人群避免波及大团，紫圈结束后会出现三个白色灵魂，需要撞掉处理。"
                 },
                 {
                     id: 25,
@@ -843,7 +834,6 @@
                     analysis: "点名出人群结束后会射出十字型蠕动波，全团需注意躲避波的轨迹。"
                 }
             ],
-
             // M1 占位题（共10道，后续可替换真实内容）
             m1: [
                 { id: 1, question: "M1第1题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
@@ -954,18 +944,15 @@
                 { id: 10, question: "M9第10题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" }
             ]
         };
-
         let currentSet = 'h'; // 当前选中的卷子，默认H难度
         let finalScore = 0;
         let allRankData = [];
         let currentPlayerId = '';
-
         // 同步当前试卷的启用状态
         function syncQuizStatus() {
             const submitBtn = document.getElementById('submitBtn');
             const closedTip = document.getElementById('quizClosedTip');
             const leaderboardSection = document.querySelector('.leaderboard-section');
-
             if (QUIZ_ENABLED[currentSet]) {
                 submitBtn.style.display = 'block';
                 closedTip.style.display = 'none';
@@ -976,7 +963,6 @@
                 leaderboardSection.style.display = 'none';
             }
         }
-
         // 切换试卷
         function switchQuiz(setKey) {
             currentSet = setKey;
@@ -997,20 +983,19 @@
             // 滚动到顶部
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
         // 渲染题目
         function renderQuiz() {
             const questions = quizSets[currentSet];
             const quizContainer = document.getElementById('quiz');
             let html = '';
-            
+
             questions.forEach((q) => {
                 html += `
                     <div class="question">
                         <div class="q-title">${q.id}. ${q.question}</div>
                         <div class="options">
                 `;
-                
+
                 q.options.forEach((opt, optIndex) => {
                     const letter = String.fromCharCode(65 + optIndex);
                     html += `
@@ -1020,13 +1005,13 @@
                         </label>
                     `;
                 });
-                
+
                 html += `
                         </div>
                     </div>
                 `;
             });
-            
+
             quizContainer.innerHTML = html;
         }
 
@@ -1049,45 +1034,67 @@
                 idInput.focus();
                 return;
             }
+
             currentPlayerId = playerId;
             submitBtn.disabled = true;
-            submitBtn.textContent = '正在判分并上传...';
+            submitBtn.textContent = '正在提交...';
 
-            // 1. 计算分数
-            let score = 0;
-            const wrongQuestions = [];
+            // 1. 收集用户答案
+            const answers = [];
+            let allAnswered = true;
+
             questions.forEach(q => {
-                const selected = document.querySelector(`input[name="q.id"]:checked`);
-                if (selected && parseInt(selected.value) === q.answer) {
-                    score += currentSet === 'h' ? 4 : 10;
+                const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
+                if (selected) {
+                    answers.push(Number(selected.value));
+                } else {
+                    answers.push(-1);
+                    allAnswered = false;
+                }
+            });
+
+            // 2. 前端漏答拦截
+            if (!allAnswered) {
+                alert('要答完所有题才能提交哦嘻嘻❥(^_-)');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '提交答卷并上传成绩';
+                return;
+            }
+
+            // 3. 前端仅做本地判分展示，最终分数以后端为准
+            let localScore = 0;
+            const wrongQuestions = [];
+
+            questions.forEach((q, index) => {
+                if (answers[index] === q.answer) {
+                    localScore += currentSet === 'h' ? 4 : 10;
                 } else {
                     wrongQuestions.push({
                         ...q,
-                        userAnswer: selected ? selected.value : '未作答'
+                        userAnswer: answers[index]
                     });
                 }
             });
 
-            score = Number(score) || 0;
-            finalScore = score;
+            finalScore = localScore;
 
-            // 2. 显示基础结果
-            document.getElementById('score').textContent = score;
-            document.getElementById('comment').innerHTML = generateComment(score);
-            
+            // 4. 显示本地判分结果
+            document.getElementById('score').textContent = finalScore;
+            document.getElementById('comment').innerHTML = generateComment(finalScore);
+
             const wrongContent = document.getElementById('wrongContent');
             if (wrongQuestions.length === 0) {
                 wrongContent.innerHTML = '<div class="all-right">全部答对！你就是团本卷王，建议直接竞争团长职位。</div>';
             } else {
                 let wrongHtml = '';
                 wrongQuestions.forEach(q => {
-                    const userLetter = q.userAnswer === '未作答' ? '未作答' : String.fromCharCode(65 + parseInt(q.userAnswer));
+                    const userLetter = String.fromCharCode(65 + q.userAnswer);
                     const rightLetter = String.fromCharCode(65 + q.answer);
-                    
+
                     wrongHtml += `
                         <div class="wrong-item">
                             <div class="wrong-q">第${q.id}题：${q.question}</div>
-                            <div class="wrong-answer">你的答案：${userLetter}. ${q.userAnswer === '未作答' ? '空题没选' : q.options[q.userAnswer]}</div>
+                            <div class="wrong-answer">你的答案：${userLetter}. ${q.options[q.userAnswer]}</div>
                             <div class="right-answer">正确答案：${rightLetter}. ${q.options[q.answer]}</div>
                             <div class="analysis">解析：${q.analysis}</div>
                         </div>
@@ -1101,71 +1108,66 @@
             rankBanner.style.color = '#c9a227';
             document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
 
-            // 3. 自动上传成绩
+            // 5. 上传答案到后端，后端负责校验全答、算分、查重、写入
             try {
-                await uploadScoreAuto(playerId, score);
+                await uploadScoreAuto(playerId, answers);
             } catch (e) {
                 rankBanner.textContent = '成绩上传失败：' + e.message;
                 rankBanner.style.color = '#ff6b6b';
                 document.getElementById('uploadStatus').textContent = '排行榜加载失败，请刷新页面重试';
                 document.getElementById('uploadStatus').style.color = '#ff6b6b';
             }
+
             submitBtn.disabled = false;
             submitBtn.textContent = '重新答题';
             submitBtn.onclick = () => location.reload();
         }
 
-        // 自动上传成绩（内部调用）
-        async function uploadScoreAuto(playerId, score) {
-            score = Number(score) || 0;
-            // 分数范围强制校验
-            if (score < 0 || score > 100) {
-                throw new Error('分数异常，提交失败');
-            }
-
+        // 自动上传成绩：前端只传 answers，分数由后端计算并返回
+        async function uploadScoreAuto(playerId, answers) {
             const rankBanner = document.getElementById('myRankBanner');
             const uploadStatus = document.getElementById('uploadStatus');
 
             try {
-                const userIp = 'unknown';
-
-                // 同卷子下检查ID是否已存在
-                const checkRes = await fetch(SHEETDB_API);
-                if (!checkRes.ok) throw new Error(`服务器连接失败(${checkRes.status})`);
-                
-                const allData = await checkRes.json();
-                const exist = allData.some(item => item.id === playerId && item.type === currentSet);
-                if (exist) {
-                    await loadLeaderboard();
-                    const myIndex = allRankData.findIndex(item => item.id === playerId);
-                    rankBanner.textContent = `该ID已存在成绩，当前排名：第 ${myIndex + 1} 名 / 共 ${allRankData.length} 人`;
-                    rankBanner.style.color = '#c9a227';
-                    uploadStatus.textContent = '每人每卷仅可上传一次成绩';
-                    return;
-                }
-
-                // 新增成绩，附带type字段
                 const now = new Date().toLocaleString('zh-CN');
+
                 const postRes = await fetch(SHEETDB_API, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         id: playerId,
-                        score: String(score),
                         time: now,
-                        ip: userIp,
-                        type: currentSet
+                        type: currentSet,
+                        answers: answers
                     })
                 });
 
-                if (!postRes.ok) throw new Error(`上传失败(${postRes.status})`);
+                if (!postRes.ok) {
+                    const err = await postRes.json();
+                    throw new Error(err.error || `提交失败(${postRes.status})`);
+                }
+
+                const result = await postRes.json();
+
+                if (!result.success) {
+                    rankBanner.textContent = result.error;
+                    rankBanner.style.color = '#ff6b6b';
+                    return;
+                }
+
+                // 以后端返回的真实分数为准更新页面
+                finalScore = result.score;
+                document.getElementById('score').textContent = finalScore;
+                document.getElementById('comment').innerHTML = generateComment(finalScore);
 
                 // 刷新排行榜
                 await loadLeaderboard();
+
                 const myIndex = allRankData.findIndex(item => item.id === playerId);
                 rankBanner.textContent = `上传成功！当前排名：第 ${myIndex + 1} 名 / 共 ${allRankData.length} 人`;
                 rankBanner.style.color = '#51cf66';
                 uploadStatus.textContent = '';
+
             } catch (e) {
                 throw e;
             }
@@ -1174,19 +1176,19 @@
         // 生成毒辣锐评
         function generateComment(score) {
             const guideLink = '<br><a href="https://www.kdocs.cn/l/cuFmfCcPJ8H7" target="_blank" class="guide-link">→ 完整攻略 ←</a>';
-            
+
             if (score === 100) {
-                return "【满分大佬】机制全通毫无破绽，属于是团长级理解，建议直接开团带萌新。"+ guideLink;
+                return "【满分大佬】机制全通毫无破绽，属于是团长级理解，建议直接开团带萌新。" + guideLink;
             } else if (score >= 80) {
-                return "【高玩水准】核心机制基本都懂，细节再打磨一下就能稳过，属于团队里的中坚力量。"+ guideLink;
+                return "【高玩水准】核心机制基本都懂，细节再打磨一下就能稳过，属于团队里的中坚力量。" + guideLink;
             } else if (score >= 60) {
-                return "【及格水平】大体机制有概念，但细节漏洞不少，再看两遍攻略就能上手打。"+ guideLink;
+                return "【及格水平】大体机制有概念，但细节漏洞不少，再看两遍攻略就能上手打。" + guideLink;
             } else if (score >= 40) {
-                return "【半懂不懂】知道个大概方向，但关键机制全搞混了，打本很容易成为团灭发动机。"+ guideLink;
+                return "【半懂不懂】知道个大概方向，但关键机制全搞混了，打本很容易成为团灭发动机。" + guideLink;
             } else if (score >= 20) {
-                return "【纯纯萌新】基本属于两眼一抹黑，建议先看一遍完整攻略再来答题。"+ guideLink;
+                return "【纯纯萌新】基本属于两眼一抹黑，建议先看一遍完整攻略再来答题。" + guideLink;
             } else {
-                return "【卧龙凤雏】十道题能错九道，建议先从入门攻略看起，不然进本纯纯坐牢。"+ guideLink;
+                return "【卧龙凤雏】十道题能错九道，建议先从入门攻略看起，不然进本纯纯坐牢。" + guideLink;
             }
         }
 
@@ -1204,7 +1206,7 @@
                 const res = await fetch(SHEETDB_API, { method: 'GET' });
                 if (!res.ok) throw new Error(`HTTP错误: ${res.status}`);
                 const data = await res.json();
-                
+
                 // 过滤：类型匹配 + 分数合法 + 对应难度的倍数规则
                 const filtered = data.filter(item => {
                     const scoreNum = Number(item.score);
@@ -1228,6 +1230,7 @@
 
                 renderTop10();
                 renderBottom10();
+
             } catch (e) {
                 console.error('加载排行榜失败', e);
                 throw e;
@@ -1263,7 +1266,7 @@
             const modal = document.getElementById('fullBoardModal');
             const listEl = document.getElementById('fullBoardList');
             const myRankEl = document.getElementById('myRankInfo');
-            
+
             let html = '';
             allRankData.forEach((item, index) => {
                 html += `
@@ -1287,6 +1290,7 @@
             } else {
                 myRankEl.style.display = 'none';
             }
+
             modal.style.display = 'flex';
         }
 
@@ -1314,3 +1318,4 @@
     </script>
 </body>
 </html>
+
