@@ -876,10 +876,24 @@
 
         // 自动上传成绩（内部调用）
 async function uploadScoreAuto(playerId, score) {
+    // 新增：强制分数转为数字，空值/异常值统一兜底为0
+    score = Number(score) || 0;
+
     const rankBanner = document.getElementById('myRankBanner');
     const uploadStatus = document.getElementById('uploadStatus');
 
     try {
+        // 先获取用户公网IP
+        let userIp = '未知';
+        try {
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipRes.json();
+            userIp = ipData.ip;
+        } catch (ipErr) {
+            // IP获取失败不影响上传，继续执行
+            console.warn('IP获取失败', ipErr);
+        }
+
         // 检查ID是否已存在
         const checkRes = await fetch(`${SHEETDB_API}/search?id=${encodeURIComponent(playerId)}`);
         if (!checkRes.ok) throw new Error(`服务器连接失败(${checkRes.status})`);
@@ -894,12 +908,17 @@ async function uploadScoreAuto(playerId, score) {
             return;
         }
 
-        // 新增成绩
+        // 新增成绩，附带IP
         const now = new Date().toLocaleString('zh-CN');
         const postRes = await fetch(SHEETDB_API, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: playerId, score: score, time: now })
+            body: JSON.stringify({ 
+                id: playerId, 
+                score: score, 
+                time: now,
+                ip: userIp  // 新增IP字段
+            })
         });
 
         if (!postRes.ok) throw new Error(`上传失败(${postRes.status})`);
@@ -915,6 +934,7 @@ async function uploadScoreAuto(playerId, score) {
         throw e;
     }
 }
+
 
 
 
