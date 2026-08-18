@@ -18,7 +18,7 @@
             line-height: 1.6;
         }
         .container {
-            max-width: 900px;
+            max-width: 1100px;
             margin: 0 auto;
             background: #16213e;
             border: 2px solid #c9a227;
@@ -242,9 +242,10 @@
         .board-item {
             display: flex;
             justify-content: space-between;
-            padding: 4px 8px;
+            padding: 8px 8px;
             font-size: 14px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
+            align-items: flex-start;
         }
         .board-item:last-child {
             border-bottom: none;
@@ -252,17 +253,21 @@
         .rank-num {
             width: 30px;
             color: #c9a227;
+            padding-top: 4px;
         }
         .rank-id {
             flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            white-space: normal;
+            word-break: break-all;
+            line-height: 1.4;
+            padding: 4px 0;
         }
         .rank-score {
             width: 50px;
             text-align: right;
             color: #51cf66;
+            padding-top: 4px;
+            flex-shrink: 0;
         }
         .full-board-btn {
             display: block;
@@ -296,7 +301,7 @@
             border: 2px solid #c9a227;
             border-radius: 8px;
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
             max-height: 80vh;
             padding: 20px;
             overflow-y: auto;
