@@ -1133,13 +1133,18 @@
             submitBtn.onclick = () => location.reload();
         }
 
-        // 自动上传成绩：前端只传 answers，分数由后端计算并返回
+        // 自动上传成绩：前端只传答案+签名，分数由后端计算返回
         async function uploadScoreAuto(playerId, answers) {
             const rankBanner = document.getElementById('myRankBanner');
             const uploadStatus = document.getElementById('uploadStatus');
 
             try {
                 const now = new Date().toLocaleString('zh-CN');
+                const timestamp = Math.floor(Date.now() / 1000);
+                // 拼接签名原文，规则和后端完全一致
+                const answersStr = answers.join(',');
+                const signStr = `${playerId}|${currentSet}|${answersStr}|${timestamp}|${SIGN_SALT}`;
+                const sign = await sha256(signStr);
 
                 const postRes = await fetch(SHEETDB_API, {
                     method: 'POST',
@@ -1148,7 +1153,9 @@
                         id: playerId,
                         time: now,
                         type: currentSet,
-                        answers: answers
+                        answers: answers,
+                        timestamp: timestamp,
+                        sign: sign
                     })
                 });
 
@@ -1182,6 +1189,7 @@
                 throw e;
             }
         }
+
 
         // 生成毒辣锐评
         function generateComment(score) {
