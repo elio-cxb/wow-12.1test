@@ -1163,7 +1163,16 @@
                 // 只保留当前卷子类型 + 分数在合法范围内的数据
                 const filtered = data.filter(item => {
                     const scoreNum = Number(item.score);
-                    return item.type === currentSet && scoreNum >= 0 && scoreNum <= 100;
+                    // 基础校验：类型匹配、分数在0-100之间
+                    const baseValid = item.type === currentSet && scoreNum >= 0 && scoreNum <= 100;
+                    if (!baseValid) return false;
+
+                    // 按难度匹配对应的倍数规则
+                    if (currentSet === 'h') {
+                        return scoreNum % 4 === 0; // H卷：4的倍数
+                    } else {
+                        return scoreNum % 10 === 0; // M卷：10的倍数
+                    }
                 });
 
                 // 按分数降序，同分按提交时间升序
