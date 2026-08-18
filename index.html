@@ -1082,14 +1082,7 @@
 
             try {
                 // 获取用户公网IP
-                let userIp = '未知';
-                try {
-                    const ipRes = await fetch('https://api.ipify.org?format=json');
-                    const ipData = await ipRes.json();
-                    userIp = ipData.ip;
-                } catch (ipErr) {
-                    console.warn('IP获取失败', ipErr);
-                }
+                const userIp = 'unknown';
 
                 // 同卷子下检查ID是否已存在（全量数据后按type+id过滤）
                 const checkRes = await fetch(SHEETDB_API);
