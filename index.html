@@ -130,7 +130,7 @@
             cursor: pointer;
             padding: 6px 8px;
             border-radius: 4px;
-            transition: background 0.2s;
+            transition: background 0.2;
         }
         .option:hover {
             background: rgba(201, 162, 39, 0.1);
@@ -160,6 +160,16 @@
         .submit-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+        /* 试卷未开放提示 */
+        .quiz-closed-tip {
+            text-align: center;
+            color: #8892b0;
+            font-size: 14px;
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
         }
         .result {
             margin-top: 40px;
@@ -361,6 +371,7 @@
             color: #c9a227;
             font-weight: bold;
         }
+        /* 免责声明样式 */
         .disclaimer {
             margin-top: 30px;
             padding-top: 20px;
@@ -446,8 +457,15 @@
             <input type="text" id="playerId" placeholder="请输入你的游戏ID" maxlength="200">
             <div class="tip">* 必填，每个ID在对应卷子中仅可提交一次成绩</div>
         </div>
+
         <div id="quiz"></div>
         <button class="submit-btn" id="submitBtn" onclick="submitQuiz()">提交答卷并上传成绩</button>
+        
+        <!-- 试卷未开放提示 -->
+        <div id="quizClosedTip" class="quiz-closed-tip" style="display: none;">
+            本卷题目更新中，暂未开放提交与排行榜，敬请期待
+        </div>
+
         <div class="result" id="result">
             <div class="score-box">
                 <div>你的最终得分</div>
@@ -477,7 +495,8 @@
                 <button class="full-board-btn" onclick="showFullBoard()">查看完整榜单</button>
             </div>
         </div>
-                <!-- 免责声明 -->
+
+        <!-- 免责声明 -->
         <div class="disclaimer">
             <h4>免责声明</h4>
             <p>1. 本页面仅供娱乐，所有答题内容均为个人整理，仅供公会内部学习交流与娱乐使用，仅代表个人游戏攻略或操作建议。</p>
@@ -486,6 +505,7 @@
             <p>4. 如页面内容存在侵权或不当信息，请联系我，我将第一时间核实并处理。</p>
         </div>
     </div>
+
     <!-- 完整榜单弹窗 -->
     <div class="modal-mask" id="fullBoardModal">
         <div class="modal-content">
@@ -497,10 +517,25 @@
             <div id="fullBoardList"></div>
         </div>
     </div>
+
     <script>
         // ===================== 配置区 =====================
-        // 仅用1个sheet.best地址，通过type字段区分不同卷子
+        // 仅用1个后端代理地址，通过type字段区分不同卷子
         const SHEETDB_API = 'https://1470660505-dossu7oz5o.ap-shanghai.tencentscf.com';
+
+        // 试卷启用开关：true=开放提交+排行榜，false=暂未开放
+        const QUIZ_ENABLED = {
+            h: true,
+            m1: false,
+            m2: false,
+            m3: false,
+            m4: false,
+            m5: false,
+            m6: false,
+            m7: false,
+            m8: false,
+            m9: false
+        };
         // =================================================
 
         // 多套题目集合，key对应type字段值
@@ -822,8 +857,6 @@
                 { id: 9, question: "M1第9题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 10, question: "M1第10题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" }
             ],
-
-            // M2 占位题
             m2: [
                 { id: 1, question: "M2第1题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 2, question: "M2第2题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
@@ -836,8 +869,6 @@
                 { id: 9, question: "M2第9题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 10, question: "M2第10题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" }
             ],
-
-            // M3 占位题
             m3: [
                 { id: 1, question: "M3第1题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 2, question: "M3第2题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
@@ -850,8 +881,6 @@
                 { id: 9, question: "M3第9题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 10, question: "M3第10题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" }
             ],
-
-            // M4 占位题
             m4: [
                 { id: 1, question: "M4第1题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 2, question: "M4第2题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
@@ -864,8 +893,6 @@
                 { id: 9, question: "M4第9题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 10, question: "M4第10题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" }
             ],
-
-            // M5 占位题
             m5: [
                 { id: 1, question: "M5第1题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 2, question: "M5第2题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
@@ -878,8 +905,6 @@
                 { id: 9, question: "M5第9题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 10, question: "M5第10题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" }
             ],
-
-            // M6 占位题
             m6: [
                 { id: 1, question: "M6第1题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 2, question: "M6第2题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
@@ -892,8 +917,6 @@
                 { id: 9, question: "M6第9题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 10, question: "M6第10题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" }
             ],
-
-            // M7 占位题
             m7: [
                 { id: 1, question: "M7第1题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 2, question: "M7第2题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
@@ -906,8 +929,6 @@
                 { id: 9, question: "M7第9题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 10, question: "M7第10题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" }
             ],
-
-            // M8 占位题
             m8: [
                 { id: 1, question: "M8第1题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 2, question: "M8第2题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
@@ -920,8 +941,6 @@
                 { id: 9, question: "M8第9题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 10, question: "M8第10题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" }
             ],
-
-            // M9 占位题
             m9: [
                 { id: 1, question: "M9第1题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
                 { id: 2, question: "M9第2题 占位题目", options: ["选项A", "选项B", "选项C", "选项D"], answer: 0, analysis: "占位解析" },
@@ -941,6 +960,23 @@
         let allRankData = [];
         let currentPlayerId = '';
 
+        // 同步当前试卷的启用状态
+        function syncQuizStatus() {
+            const submitBtn = document.getElementById('submitBtn');
+            const closedTip = document.getElementById('quizClosedTip');
+            const leaderboardSection = document.querySelector('.leaderboard-section');
+
+            if (QUIZ_ENABLED[currentSet]) {
+                submitBtn.style.display = 'block';
+                closedTip.style.display = 'none';
+                leaderboardSection.style.display = 'block';
+            } else {
+                submitBtn.style.display = 'none';
+                closedTip.style.display = 'block';
+                leaderboardSection.style.display = 'none';
+            }
+        }
+
         // 切换试卷
         function switchQuiz(setKey) {
             currentSet = setKey;
@@ -956,6 +992,8 @@
             finalScore = 0;
             // 重新渲染题目
             renderQuiz();
+            // 同步启用状态
+            syncQuizStatus();
             // 滚动到顶部
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -994,6 +1032,12 @@
 
         // 提交答卷主流程
         async function submitQuiz() {
+            // 试卷未开放直接拦截
+            if (!QUIZ_ENABLED[currentSet]) {
+                alert('本卷暂未开放提交');
+                return;
+            }
+
             const questions = quizSets[currentSet];
             const idInput = document.getElementById('playerId');
             const playerId = idInput.value.trim();
@@ -1013,9 +1057,9 @@
             let score = 0;
             const wrongQuestions = [];
             questions.forEach(q => {
-                const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
+                const selected = document.querySelector(`input[name="q.id"]:checked`);
                 if (selected && parseInt(selected.value) === q.answer) {
-                    score += 10; // M卷每题10分，H卷每题4分，自动按题目数量适配总分
+                    score += currentSet === 'h' ? 4 : 10;
                 } else {
                     wrongQuestions.push({
                         ...q,
@@ -1074,17 +1118,18 @@
         // 自动上传成绩（内部调用）
         async function uploadScoreAuto(playerId, score) {
             score = Number(score) || 0;
+            // 分数范围强制校验
             if (score < 0 || score > 100) {
                 throw new Error('分数异常，提交失败');
             }
+
             const rankBanner = document.getElementById('myRankBanner');
             const uploadStatus = document.getElementById('uploadStatus');
 
             try {
-                // 获取用户公网IP
                 const userIp = 'unknown';
 
-                // 同卷子下检查ID是否已存在（全量数据后按type+id过滤）
+                // 同卷子下检查ID是否已存在
                 const checkRes = await fetch(SHEETDB_API);
                 if (!checkRes.ok) throw new Error(`服务器连接失败(${checkRes.status})`);
                 
@@ -1099,14 +1144,14 @@
                     return;
                 }
 
-                // 新增成绩，附带type字段标记所属卷子
+                // 新增成绩，附带type字段
                 const now = new Date().toLocaleString('zh-CN');
                 const postRes = await fetch(SHEETDB_API, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        id: playerId, 
-                        score: String(score), 
+                    body: JSON.stringify({
+                        id: playerId,
+                        score: String(score),
                         time: now,
                         ip: userIp,
                         type: currentSet
@@ -1115,7 +1160,7 @@
 
                 if (!postRes.ok) throw new Error(`上传失败(${postRes.status})`);
 
-                // 上传成功，刷新当前卷子排行榜
+                // 刷新排行榜
                 await loadLeaderboard();
                 const myIndex = allRankData.findIndex(item => item.id === playerId);
                 rankBanner.textContent = `上传成功！当前排名：第 ${myIndex + 1} 名 / 共 ${allRankData.length} 人`;
@@ -1126,7 +1171,7 @@
             }
         }
 
-        // 生成毒辣锐评（通用规则，所有难度共用）
+        // 生成毒辣锐评
         function generateComment(score) {
             const guideLink = '<br><a href="https://www.kdocs.cn/l/cuFmfCcPJ8H7" target="_blank" class="guide-link">→ 完整攻略 ←</a>';
             
@@ -1146,29 +1191,34 @@
         }
 
         // ===================== 排行榜相关函数 =====================
-        // 加载排行榜（按当前卷子type过滤数据）
         async function loadLeaderboard() {
+            // 未开放的卷子不加载排行榜
+            if (!QUIZ_ENABLED[currentSet]) {
+                allRankData = [];
+                renderTop10();
+                renderBottom10();
+                return;
+            }
+
             try {
                 const res = await fetch(SHEETDB_API, { method: 'GET' });
                 if (!res.ok) throw new Error(`HTTP错误: ${res.status}`);
                 const data = await res.json();
                 
-                // 只保留当前卷子类型 + 分数在合法范围内的数据
+                // 过滤：类型匹配 + 分数合法 + 对应难度的倍数规则
                 const filtered = data.filter(item => {
                     const scoreNum = Number(item.score);
-                    // 基础校验：类型匹配、分数在0-100之间
                     const baseValid = item.type === currentSet && scoreNum >= 0 && scoreNum <= 100;
                     if (!baseValid) return false;
 
-                    // 按难度匹配对应的倍数规则
                     if (currentSet === 'h') {
-                        return scoreNum % 4 === 0; // H卷：4的倍数
+                        return scoreNum % 4 === 0;
                     } else {
-                        return scoreNum % 10 === 0; // M卷：10的倍数
+                        return scoreNum % 10 === 0;
                     }
                 });
 
-                // 按分数降序，同分按提交时间升序
+                // 排序
                 allRankData = filtered.sort((a, b) => {
                     if (Number(b.score) !== Number(a.score)) {
                         return Number(b.score) - Number(a.score);
@@ -1184,7 +1234,6 @@
             }
         }
 
-        // 渲染前10名
         function renderTop10() {
             const list = allRankData.slice(0, 10);
             const html = list.map((item, index) => `
@@ -1197,7 +1246,6 @@
             document.getElementById('top10List').innerHTML = html || '<div style="text-align:center;color:#a0a0a0;font-size:13px;">暂无数据</div>';
         }
 
-        // 渲染倒数10名
         function renderBottom10() {
             const list = allRankData.slice(-10).reverse();
             const startNum = allRankData.length > 10 ? allRankData.length - 9 : 1;
@@ -1211,7 +1259,6 @@
             document.getElementById('bottom10List').innerHTML = html || '<div style="text-align:center;color:#a0a0a0;font-size:13px;">暂无数据</div>';
         }
 
-        // 显示完整榜单弹窗
         function showFullBoard() {
             const modal = document.getElementById('fullBoardModal');
             const listEl = document.getElementById('fullBoardList');
@@ -1229,7 +1276,6 @@
             });
             listEl.innerHTML = html || '<div style="text-align:center;padding:20px;color:#a0a0a0;">暂无排行数据</div>';
 
-            // 显示自己的排名
             if (currentPlayerId) {
                 const myIndex = allRankData.findIndex(i => i.id === currentPlayerId);
                 if (myIndex >= 0) {
@@ -1244,28 +1290,27 @@
             modal.style.display = 'flex';
         }
 
-        // 关闭弹窗
         function closeModal() {
             document.getElementById('fullBoardModal').style.display = 'none';
         }
 
-        // XSS防护
         function escapeHtml(str) {
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
         }
 
-        // 点击遮罩关闭弹窗
         document.getElementById('fullBoardModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
             }
         });
 
-        // 页面加载渲染默认题目
-        window.onload = renderQuiz;
+        // 页面初始化
+        window.onload = function() {
+            renderQuiz();
+            syncQuizStatus();
+        };
     </script>
 </body>
 </html>
-
