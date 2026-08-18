@@ -1074,6 +1074,9 @@
         // 自动上传成绩（内部调用）
         async function uploadScoreAuto(playerId, score) {
             score = Number(score) || 0;
+            if (score < 0 || score > 100) {
+                throw new Error('分数异常，提交失败');
+            }
             const rankBanner = document.getElementById('myRankBanner');
             const uploadStatus = document.getElementById('uploadStatus');
 
