@@ -1160,8 +1160,11 @@
                 if (!res.ok) throw new Error(`HTTP错误: ${res.status}`);
                 const data = await res.json();
                 
-                // 只保留当前卷子类型的数据
-                const filtered = data.filter(item => item.type === currentSet);
+                // 只保留当前卷子类型 + 分数在合法范围内的数据
+                const filtered = data.filter(item => {
+                    const scoreNum = Number(item.score);
+                    return item.type === currentSet && scoreNum >= 0 && scoreNum <= 100;
+                });
 
                 // 按分数降序，同分按提交时间升序
                 allRankData = filtered.sort((a, b) => {
