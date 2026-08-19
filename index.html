@@ -534,12 +534,24 @@
                     <textarea id="feedbackContent" placeholder="请描述具体问题或建议，不超过200字" maxlength="200" rows="5"
                         style="width:100%;padding:10px 12px;background:#1a1a2e;border:1px solid #c9a227;border-radius:4px;color:#e0e0e0;resize:none;box-sizing:border-box;font-family:inherit;"></textarea>
                 </div>
+                <!-- 算术验证码 -->
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block;margin-bottom:6px;color:#e0e0e0;font-size:14px;">验证码</label>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <div id="captchaQuestion" style="flex:1;padding:10px 12px;background:#1a1a2e;border:1px solid #c9a227;border-radius:4px;color:#c9a227;font-weight:bold;text-align:center;letter-spacing:2px;user-select:none;">
+                            加载中...
+                        </div>
+                        <input type="text" id="captchaInput" placeholder="答案" maxlength="3"
+                            style="width:80px;padding:10px 12px;background:#1a1a2e;border:1px solid #c9a227;border-radius:4px;color:#e0e0e0;text-align:center;">
+                    </div>
+                </div>
                 <button id="sendFeedbackBtn" onclick="submitFeedback()" class="submit-btn" style="width:100%;height:44px;font-size:16px;margin:10px 0 0;">
                     发送
                 </button>
             </div>
         </div>
     </div>
+
 
     <script>
         // ===================== 配置区 =====================
