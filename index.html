@@ -375,7 +375,7 @@
         .disclaimer {
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid rgba(201, 162, 34, 0.2);
+            border-top: 1px solid rgba(201, 62, 34, 0.2);
             font-size: 12px;
             color: #8892b0;
             line-height: 1.6;
@@ -498,6 +498,7 @@
             <p>2. 用户提交的游戏ID、分数等信息仅用于本页排行榜展示，不会用于任何商业或其他用途。</p>
             <p>3. 本站不对排行榜数据的准确性、完整性、实时性做任何担保，也不对因使用本页面产生的任何直接或间接损失承担责任。</p>
             <p>4. 如页面内容存在侵权或不当信息，请联系我，我将第一时间核实并处理。</p>
+            <p>5. 捉虫或联系作者，请<a href="javascript:void(0)" onclick="openFeedbackModal()" style="color:#c9a227;text-decoration:underline;">点击此处</a>。</p>
         </div>
     </div>
     <!-- 完整榜单弹窗 -->
@@ -511,6 +512,35 @@
             <div id="fullBoardList"></div>
         </div>
     </div>
+
+    <!-- 反馈弹窗 -->
+    <div class="modal-mask" id="feedbackModal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3>联系作者 / 捉虫反馈</h3>
+                <button class="close-btn" onclick="closeFeedbackModal()">×</button>
+            </div>
+            <div style="margin-top: 15px;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block;margin-bottom:6px;color:#e0e0e0;font-size:14px;">联系方式（QQ/微信/邮箱）</label>
+                    <input type="text" id="feedbackContact" placeholder="请填写，方便我们回复你" maxlength="100"
+                        style="width:100%;padding:10px 12px;background:#1a1a2e;border:1px solid #c9a227;border-radius:4px;color:#e0e0e0;box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block;margin-bottom:6px;color:#e0e0e0;font-size:14px;">
+                        具体事项
+                        <span id="wordCount" style="float:right;color:#8892b0;">0/200</span>
+                    </label>
+                    <textarea id="feedbackContent" placeholder="请描述具体问题或建议，不超过200字" maxlength="200" rows="5"
+                        style="width:100%;padding:10px 12px;background:#1a1a2e;border:1px solid #c9a227;border-radius:4px;color:#e0e0e0;resize:none;box-sizing:border-box;font-family:inherit;"></textarea>
+                </div>
+                <button id="sendFeedbackBtn" onclick="submitFeedback()" class="submit-btn" style="width:100%;height:44px;font-size:16px;margin:10px 0 0;">
+                    发送
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ===================== 配置区 =====================
         // 后端代理地址，所有读写请求走后端，由后端做合法性校验
@@ -1108,15 +1138,12 @@
             submitBtn.textContent = '重新答题';
             submitBtn.onclick = () => location.reload();
         }
-
         // 自动上传成绩：提交成功优先提示，排行榜失败单独提示
         async function uploadScoreAuto(playerId, answers) {
             const rankBanner = document.getElementById('myRankBanner');
             const uploadStatus = document.getElementById('uploadStatus');
-
             try {
                 const now = new Date().toLocaleString('zh-CN');
-
                 const postRes = await fetch(SHEETDB_API, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1127,24 +1154,20 @@
                         answers: answers
                     })
                 });
-
                 if (!postRes.ok) {
                     const err = await postRes.json();
                     throw new Error(err.error || `提交失败(${postRes.status})`);
                 }
-
                 const result = await postRes.json();
                 if (!result.success) {
                     rankBanner.textContent = result.error;
                     rankBanner.style.color = '#ff6b6b';
                     return;
                 }
-
                 // 提交成功，先更新分数
                 finalScore = result.score;
                 document.getElementById('score').textContent = finalScore;
                 document.getElementById('comment').innerHTML = generateComment(finalScore);
-
                 // 单独处理排行榜加载，失败不影响提交结果
                 try {
                     await loadLeaderboard();
@@ -1157,12 +1180,10 @@
                     rankBanner.style.color = '#c9a227';
                     uploadStatus.textContent = '';
                 }
-
             } catch (e) {
                 throw e;
             }
         }
-
         // 生成毒辣锐评
         function generateComment(score) {
             const guideLink = '<br><a href="https://www.kdocs.cn/l/cuFmfCcPJ8H7" target="_blank" class="guide-link">→ 完整攻略 ←</a>';
@@ -1180,7 +1201,6 @@
                 return "【卧龙凤雏】十道题能错九道，建议先从入门攻略看起，不然进本纯纯坐牢。" + guideLink;
             }
         }
-
         // ===================== 排行榜相关函数 =====================
         async function loadLeaderboard() {
             // 未开放的卷子不加载排行榜
@@ -1190,10 +1210,8 @@
                 renderBottom10();
                 return;
             }
-
             const maxRetry = 2; // 额外重试2次，累计共3次请求
             let lastError = null;
-
             for (let i = 0; i <= maxRetry; i++) {
                 try {
                     const res = await fetch(SHEETDB_API, { method: 'GET' });
@@ -1211,7 +1229,6 @@
                             return scoreNum % 10 === 0;
                         }
                     });
-
                     // 排序
                     allRankData = filtered.sort((a, b) => {
                         if (Number(b.score) !== Number(a.score)) {
@@ -1219,7 +1236,6 @@
                         }
                         return new Date(a.time) - new Date(b.time);
                     });
-
                     renderTop10();
                     renderBottom10();
                     return; // 加载成功直接退出，不再重试
@@ -1231,12 +1247,10 @@
                     }
                 }
             }
-
             // 全部重试失败，抛出错误
             console.error('排行榜加载失败', lastError);
             throw lastError;
         }
-
         function renderTop10() {
             const list = allRankData.slice(0, 10);
             const html = list.map((item, index) => `
@@ -1301,6 +1315,79 @@
                 closeModal();
             }
         });
+
+        // ========== 反馈弹窗相关函数 ==========
+        // 打开反馈弹窗
+        function openFeedbackModal() {
+            document.getElementById('feedbackModal').style.display = 'flex';
+            document.getElementById('feedbackContact').value = '';
+            document.getElementById('feedbackContent').value = '';
+            document.getElementById('wordCount').textContent = '0/200';
+            document.getElementById('sendFeedbackBtn').disabled = false;
+            document.getElementById('sendFeedbackBtn').textContent = '发送';
+        }
+
+        // 关闭反馈弹窗
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').style.display = 'none';
+        }
+
+        // 字数实时统计
+        document.getElementById('feedbackContent').addEventListener('input', function() {
+            document.getElementById('wordCount').textContent = `${this.value.length}/200`;
+        });
+
+        // 提交反馈
+        async function submitFeedback() {
+            const contact = document.getElementById('feedbackContact').value.trim();
+            const content = document.getElementById('feedbackContent').value.trim();
+            const btn = document.getElementById('sendFeedbackBtn');
+
+            if (!contact) {
+                alert('请填写联系方式');
+                return;
+            }
+            if (!content) {
+                alert('请填写具体事项');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '发送中...';
+
+            try {
+                const res = await fetch(SHEETDB_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'feedback',
+                        contact: contact,
+                        content: content
+                    })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    alert('发送成功，感谢你的反馈！');
+                    closeFeedbackModal();
+                } else {
+                    alert(result.error || '发送失败');
+                }
+            } catch (e) {
+                alert('发送失败，请稍后重试');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '发送';
+            }
+        }
+
+        // 点击遮罩关闭反馈弹窗
+        document.getElementById('feedbackModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFeedbackModal();
+            }
+        });
+
         // 页面初始化
         window.onload = function() {
             renderQuiz();
