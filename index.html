@@ -1034,6 +1034,12 @@
                 idInput.focus();
                 return;
             }
+            
+            if (/^\d+$/.test(playerId)) {
+                alert('ID不能为纯数字，请输入包含字母/中文的游戏ID');
+                idInput.focus();
+                return;
+            }
 
             currentPlayerId = playerId;
             submitBtn.disabled = true;
